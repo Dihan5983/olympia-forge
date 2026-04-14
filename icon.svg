@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5D485"/>
+      <stop offset="50%" style="stop-color:#D4A84B"/>
+      <stop offset="100%" style="stop-color:#8B6914"/>
+    </linearGradient>
+    <linearGradient id="darkBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a1a"/>
+      <stop offset="100%" style="stop-color:#0d0d0d"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" rx="102" fill="url(#darkBg)"/>
+  
+  <!-- Outer ring -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="url(#gold)" stroke-width="8" opacity="0.3"/>
+  
+  <!-- Trophy body -->
+  <path d="M176 160 h160 v20 c0 80 -30 140 -80 180 c-50 -40 -80 -100 -80 -180 v-20z" 
+        fill="url(#gold)" />
+  
+  <!-- Trophy handles -->
+  <path d="M176 180 h-30 a40 40 0 0 0 0 80 h30" 
+        fill="none" stroke="url(#gold)" stroke-width="16" stroke-linecap="round"/>
+  <path d="M336 180 h30 a40 40 0 0 1 0 80 h-30" 
+        fill="none" stroke="url(#gold)" stroke-width="16" stroke-linecap="round"/>
+  
+  <!-- Trophy stem -->
+  <rect x="236" y="360" width="40" height="40" fill="url(#gold)"/>
+  
+  <!-- Trophy base -->
+  <rect x="196" y="400" width="120" height="24" rx="4" fill="url(#gold)"/>
+  
+  <!-- Inner star/shine -->
+  <polygon points="256,200 262,220 284,220 266,234 274,256 256,242 238,256 246,234 228,220 250,220" 
+           fill="#0d0d0d" opacity="0.4"/>
+  
+  <!-- Dumbbell overlay in trophy -->
+  <rect x="220" y="270" width="72" height="12" rx="6" fill="#0d0d0d" opacity="0.3"/>
+  <rect x="210" y="264" width="16" height="24" rx="3" fill="#0d0d0d" opacity="0.3"/>
+  <rect x="286" y="264" width="16" height="24" rx="3" fill="#0d0d0d" opacity="0.3"/>
+  
+  <!-- Flame accent on top -->
+  <path d="M256 130 c-5 15 -15 20 -10 35 c5 -10 15 -5 10 15 c10 -15 20 -25 15 -40 c-3 10 -10 5 -15 -10z" 
+        fill="#D4A84B" opacity="0.8"/>
+</svg>

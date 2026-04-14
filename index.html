@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Olympia Forge">
+  <meta name="theme-color" content="#0d0d0d">
+  <meta name="description" content="Your Mr. Olympia journey companion">
+  
+  <title>Olympia Forge</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d0d0d; 
+      color: #f5f5f5; 
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      overscroll-behavior: none;
+    }
+    body { padding-bottom: env(safe-area-inset-bottom); }
+    #root { min-height: 100vh; }
+    
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+    input:focus { outline: none; }
+    
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .animate-pulse { animation: pulse 2s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Workout sessions data
+    const workoutSessions = {
+      'back': {
+        name: 'Back & Biceps',
+        shortName: 'Back',
+        muscles: ['Back', 'Biceps'],
+        exercises: [
+          { id: 1, name: 'Lat Pull-up (Wide)', sets: 3, reps: 12, weight: 'BW', done: false },
+          { id: 2, name: 'Lat Pull-up (Close)', sets: 3, reps: 12, weight: 'BW', done: false },
+          { id: 3, name: 'Bent Over Barbell Rows', sets: 3, reps: 12, weight: 45, done: false },
+          { id: 4, name: 'Deadlifts', sets: 4, reps: 12, weight: 60, done: false },
+          { id: 5, name: 'Dumbbell Rows', sets: 3, reps: 12, weight: 14.5, done: false },
+          { id: 6, name: 'Ball Hyper Extensions', sets: 4, reps: 12, weight: 5, done: false },
+          { id: 7, name: 'Chin-ups', sets: 4, reps: 12, weight: 'BW', done: false },
+          { id: 8, name: 'Hammer Curls', sets: 4, reps: 12, weight: 17, done: false },
+          { id: 9, name: "7's Curls", sets: 4, reps: 21, weight: 17.5, done: false },
+          { id: 10, name: 'Iso Curls', sets: 4, reps: 12, weight: 14.5, done: false },
+        ]
+      },
+      'shoulders': {
+        name: 'Shoulders & Calves',
+        shortName: 'Shoulders',
+        muscles: ['Shoulders', 'Calves', 'Neck'],
+        exercises: [
+          { id: 1, name: 'Shoulder Press (Bar)', sets: 3, reps: 12, weight: 22.5, done: false },
+          { id: 2, name: 'Bent Over Flys', sets: 3, reps: 12, weight: 13.5, done: false },
+          { id: 3, name: 'Front Raises', sets: 3, reps: 12, weight: 13.5, done: false },
+          { id: 4, name: 'Lateral Raises', sets: 4, reps: 12, weight: 'Band', done: false },
+          { id: 5, name: 'Seated Shoulder Press', sets: 3, reps: 12, weight: 8.5, done: false },
+          { id: 6, name: 'Shrugs', sets: 4, reps: 12, weight: 65, done: false },
+          { id: 7, name: 'Upright Rows', sets: 3, reps: 12, weight: 27.5, done: false },
+          { id: 8, name: 'Standing Calf Raises', sets: 4, reps: 30, weight: 55, done: false },
+          { id: 9, name: 'Seated Calf Raises', sets: 4, reps: 20, weight: 70, done: false },
+          { id: 10, name: 'Neck Extensions', sets: 2, reps: 20, weight: 5, done: false },
+        ]
+      },
+      'legs': {
+        name: 'Legs',
+        shortName: 'Legs',
+        muscles: ['Quads', 'Hamstrings', 'Glutes'],
+        exercises: [
+          { id: 1, name: 'Traditional Squats', sets: 4, reps: 12, weight: 45, done: false },
+          { id: 2, name: 'Lying Leg Curls', sets: 4, reps: 12, weight: 'Green', done: false },
+          { id: 3, name: 'Stiff Leg Deadlifts', sets: 4, reps: 15, weight: 45, done: false },
+          { id: 4, name: 'Bulgarian Split Squats', sets: 3, reps: 12, weight: 8.5, done: false },
+          { id: 5, name: 'Dumbbell Squats', sets: 3, reps: 12, weight: 24.5, done: false },
+          { id: 6, name: 'Lunges', sets: 3, reps: 24, weight: 19.5, done: false },
+          { id: 7, name: 'Bicep Curls', sets: 3, reps: 12, weight: 11, done: false },
+          { id: 8, name: 'Standing Calf Raises', sets: 4, reps: 30, weight: 55, done: false },
+          { id: 9, name: 'Seated Calf Raises', sets: 4, reps: 20, weight: 70, done: false },
+        ]
+      },
+      'chest': {
+        name: 'Chest & Triceps',
+        shortName: 'Chest',
+        muscles: ['Chest', 'Triceps'],
+        exercises: [
+          { id: 1, name: 'Flat Dumbbell Press', sets: 4, reps: 12, weight: 27, done: false },
+          { id: 2, name: 'Close Grip Bench', sets: 4, reps: 12, weight: 27.5, done: false },
+          { id: 3, name: 'Incline Dumbbell Press', sets: 3, reps: 12, weight: 17, done: false },
+          { id: 4, name: "Flat Dumbbell Fly's", sets: 3, reps: 12, weight: 14.5, done: false },
+          { id: 5, name: "Incline Dumbbell Fly's", sets: 3, reps: 12, weight: 14.5, done: false },
+          { id: 6, name: 'Dips', sets: 4, reps: 12, weight: 'BW', done: false },
+          { id: 7, name: 'Dumbbell Pull Overs', sets: 3, reps: 12, weight: 12, done: false },
+          { id: 8, name: 'Tricep Dips', sets: 4, reps: 12, weight: 7.5, done: false },
+          { id: 9, name: 'Skull Crushers', sets: 3, reps: 12, weight: 8.5, done: false },
+          { id: 10, name: 'Tricep Kickbacks', sets: 3, reps: 12, weight: 8.5, done: false },
+          { id: 11, name: 'Hanging Leg Raises', sets: 3, reps: 26, weight: 'BW', done: false },
+        ]
+      },
+      'rest': {
+        name: 'Rest Day',
+        shortName: 'Rest',
+        muscles: ['Recovery'],
+        exercises: []
+      }
+    };
+
+    // 4-day rotation: Back → Shoulders → Legs → Chest (Sunday always rest)
+    const rotationOrder = ['back', 'shoulders', 'legs', 'chest'];
+    
+    // Calculate which workout for a given week and day
+    function getWorkoutForDay(weekNumber, dayOfWeek) {
+      if (dayOfWeek === 0) return 'rest'; // Sunday always rest
+      
+      // Calculate total training days before this week
+      // Each week has 6 training days (Mon-Sat)
+      const trainingDaysBefore = (weekNumber - 1) * 6;
+      
+      // Day index within the week (Mon=0, Tue=1, ... Sat=5)
+      const dayIndex = dayOfWeek - 1;
+      
+      // Total training day number
+      const totalTrainingDay = trainingDaysBefore + dayIndex;
+      
+      // Get rotation index (0-3)
+      const rotationIndex = totalTrainingDay % 4;
+      
+      return rotationOrder[rotationIndex];
+    }
+
+    // Nutrition plan
+    const nutritionPlan = [
+      { meal: 'M1', time: '05:05', items: ['Shake - Water'], calories: 91, protein: 18.72, carbs: 7.73, fats: 1.1 },
+      { meal: 'S1', time: '06:00', items: ['CreaTransport', 'EAA', 'Salt', 'Coffee'], calories: 150, protein: 0, carbs: 25, fats: 0 },
+      { meal: 'M2', time: '07:35', items: ['Eggs x3', 'Oats 60g', 'Omega 3'], calories: 497, protein: 33.3, carbs: 34.6, fats: 24 },
+      { meal: 'M3', time: '11:00', items: ['Rice 120g', 'Protein'], calories: 386, protein: 31.2, carbs: 33.6, fats: 12.4 },
+      { meal: 'M4', time: '14:00', items: ['Rice 120g', 'Protein'], calories: 386, protein: 31.2, carbs: 33.6, fats: 12.4 },
+      { meal: 'Snack', time: '16:00', items: ['Biltong', 'Walnuts', 'Dark Choc'], calories: 250, protein: 24.6, carbs: 4.6, fats: 12.6 },
+      { meal: 'Intra', time: 'Gym', items: ['EAA', 'Malto', 'Creatine'], calories: 292, protein: 31.5, carbs: 3, fats: 13.8 },
+      { meal: 'M5', time: '19:00', items: ['Rice 120g', 'Protein', 'Omega'], calories: 395, protein: 31.2, carbs: 33.6, fats: 12.4 },
+    ];
+
+    const initialStats = {
+      weight: 84.2, biceps: 40, waist: 93, chest: 106,
+      shoulders: 124, neck: 38, calves: 37, upperLeg: 54, bodyFat: 12
+    };
+
+    const weightHistory = [
+      { date: 'Jun', weight: 79 }, { date: 'Jul', weight: 81.5 },
+      { date: 'Aug', weight: 79 }, { date: 'Sep', weight: 81.7 },
+      { date: 'Oct', weight: 81.9 }, { date: 'Nov', weight: 84.2 },
+    ];
+
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    // Icons
+    const Icons = {
+      trophy: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:28,height:28}}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 22V8"/><path d="M14 22V8"/><path d="M8 2h8a2 2 0 0 1 2 2v5a6 6 0 0 1-12 0V4a2 2 0 0 1 2-2z"/></svg>,
+      check: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{width:16,height:16}}><polyline points="20,6 9,17 4,12"/></svg>,
+      fire: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>,
+      dumbbell: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:20,height:20}}><path d="M6.5 6.5h11M6.5 17.5h11M3 9.5v5M21 9.5v5M4.5 7v10M19.5 7v10M6.5 9.5v5M17.5 9.5v5"/></svg>,
+      utensils: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:20,height:20}}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3v7"/></svg>,
+      ruler: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:20,height:20}}><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2M11.5 9.5l2-2M8.5 6.5l2-2M17.5 15.5l2-2"/></svg>,
+      camera: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:20,height:20}}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
+      edit: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{width:16,height:16}}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+    };
+
+    function App() {
+      const [view, setView] = useState('workout');
+      const [currentWeek, setCurrentWeek] = useState(1);
+      const [selectedDayOfWeek, setSelectedDayOfWeek] = useState(new Date().getDay());
+      const [sessions, setSessions] = useState(workoutSessions);
+      const [stats, setStats] = useState(initialStats);
+      const [photos, setPhotos] = useState([]);
+      const [restTimer, setRestTimer] = useState(null);
+      const [timerSeconds, setTimerSeconds] = useState(90);
+      const [showModal, setShowModal] = useState(null);
+      const [editingExercise, setEditingExercise] = useState(null);
+      const [mealChecks, setMealChecks] = useState({});
+      const streak = 12;
+
+      // Get current workout based on week and day
+      const currentSessionKey = getWorkoutForDay(currentWeek, selectedDayOfWeek);
+      const currentSession = sessions[currentSessionKey];
+      const completedCount = currentSession.exercises.filter(e => e.done).length;
+      const totalVolume = currentSession.exercises.reduce((sum, e) => {
+        const w = typeof e.weight === 'number' ? e.weight : 0;
+        return sum + (e.sets * e.reps * w);
+      }, 0);
+
+      // Generate week schedule
+      const weekSchedule = [0,1,2,3,4,5,6].map(d => ({
+        day: d,
+        name: dayNames[d],
+        workout: getWorkoutForDay(currentWeek, d),
+        isToday: d === new Date().getDay()
+      }));
+
+      // Reorder to start with Monday
+      const orderedSchedule = [...weekSchedule.slice(1), weekSchedule[0]];
+
+      useEffect(() => {
+        let interval;
+        if (restTimer !== null && timerSeconds > 0) {
+          interval = setInterval(() => setTimerSeconds(s => s - 1), 1000);
+        } else if (timerSeconds === 0) {
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+          setRestTimer(null);
+          setTimerSeconds(90);
+        }
+        return () => clearInterval(interval);
+      }, [restTimer, timerSeconds]);
+
+      const toggleExercise = (sessionKey, id) => {
+        setSessions(prev => ({
+          ...prev,
+          [sessionKey]: {
+            ...prev[sessionKey],
+            exercises: prev[sessionKey].exercises.map(ex =>
+              ex.id === id ? { ...ex, done: !ex.done } : ex
+            )
+          }
+        }));
+        if (!sessions[sessionKey].exercises.find(e => e.id === id)?.done) {
+          setRestTimer(Date.now());
+          setTimerSeconds(90);
+        }
+      };
+
+      const totalNutrition = nutritionPlan.reduce((acc, m) => ({
+        calories: acc.calories + m.calories,
+        protein: acc.protein + m.protein,
+        carbs: acc.carbs + m.carbs,
+        fats: acc.fats + m.fats
+      }), { calories: 0, protein: 0, carbs: 0, fats: 0 });
+
+      const mealsCompleted = Object.values(mealChecks).filter(Boolean).length;
+
+      const handlePhotoUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            setPhotos(prev => [{
+              url: event.target.result,
+              date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            }, ...prev]);
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+
+      const styles = {
+        app: { minHeight: '100vh', background: '#0d0d0d', color: '#f5f5f5', paddingBottom: 100 },
+        header: { position: 'sticky', top: 0, zIndex: 40, background: 'rgba(13,13,13,0.95)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #27272a', padding: '12px 16px' },
+        headerInner: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+        logo: { display: 'flex', alignItems: 'center', gap: 8, color: '#D4A84B' },
+        logoText: { fontSize: 18, fontWeight: 700, letterSpacing: 2 },
+        streak: { display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(212,168,75,0.2)', color: '#D4A84B', padding: '4px 8px', borderRadius: 20, fontSize: 12 },
+        main: { padding: 16 },
+        dayScroll: { display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 12, marginBottom: 16 },
+        dayBtn: (active, isRest) => ({ 
+          flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          width: 56, height: 64, borderRadius: 12, border: '1px solid',
+          borderColor: active ? '#D4A84B' : '#27272a',
+          background: active ? '#D4A84B' : isRest ? 'rgba(39,39,42,0.5)' : '#18181b',
+          color: active ? '#000' : isRest ? '#52525b' : '#a1a1aa',
+          cursor: 'pointer'
+        }),
+        dayLabel: { fontSize: 10, textTransform: 'uppercase', opacity: 0.7 },
+        dayWorkout: { fontSize: 11, fontWeight: 500, marginTop: 2 },
+        todayDot: { width: 6, height: 6, borderRadius: '50%', background: 'currentColor', marginTop: 4, opacity: 0.6 },
+        sessionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
+        sessionTitle: { fontSize: 20, fontWeight: 700 },
+        muscleTag: { display: 'inline-block', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, background: 'rgba(212,168,75,0.15)', color: '#D4A84B', padding: '2px 8px', borderRadius: 4, marginRight: 8, marginTop: 4 },
+        statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 16 },
+        statCard: { background: '#18181b', borderRadius: 12, padding: 12, textAlign: 'center', border: '1px solid #27272a' },
+        statValue: { fontSize: 18, fontWeight: 700 },
+        statLabel: { fontSize: 10, color: '#71717a', textTransform: 'uppercase' },
+        timerBtn: { background: 'rgba(212,168,75,0.2)', border: '1px solid rgba(212,168,75,0.3)', cursor: 'pointer' },
+        exerciseCard: (done) => ({ 
+          borderRadius: 12, border: '1px solid', marginBottom: 8,
+          borderColor: done ? 'rgba(39,39,42,0.5)' : '#27272a',
+          background: done ? 'rgba(24,24,27,0.5)' : '#18181b'
+        }),
+        exerciseInner: { display: 'flex', alignItems: 'center', padding: 16 },
+        checkBtn: (done) => ({
+          width: 48, height: 48, borderRadius: '50%', border: '2px solid',
+          borderColor: done ? '#D4A84B' : '#52525b',
+          background: done ? '#D4A84B' : 'transparent',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          marginRight: 16, flexShrink: 0, cursor: 'pointer'
+        }),
+        exerciseName: (done) => ({ fontWeight: 500, fontSize: 14, color: done ? '#71717a' : '#fff', textDecoration: done ? 'line-through' : 'none' }),
+        exerciseMeta: { display: 'flex', gap: 12, marginTop: 4 },
+        exerciseMetaItem: { fontSize: 12, color: '#71717a' },
+        exerciseWeight: { fontSize: 12, color: '#D4A84B', fontWeight: 500 },
+        editBtn: { width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#71717a', cursor: 'pointer' },
+        nav: { position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(24,24,27,0.95)', backdropFilter: 'blur(8px)', borderTop: '1px solid #27272a', padding: '8px 24px', paddingBottom: 'max(24px, env(safe-area-inset-bottom))' },
+        navInner: { display: 'flex', justifyContent: 'space-around' },
+        navBtn: (active) => ({ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 12, color: active ? '#D4A84B' : '#71717a', background: 'transparent', border: 'none', cursor: 'pointer' }),
+        navLabel: { fontSize: 10 },
+        timerOverlay: { position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(13,13,13,0.95)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
+        timerText: { fontSize: 96, fontWeight: 700, color: '#D4A84B', fontVariantNumeric: 'tabular-nums' },
+        timerLabel: { color: '#71717a', fontSize: 14, marginBottom: 16 },
+        timerHint: { color: '#52525b', fontSize: 14, marginTop: 32 },
+        timerBtns: { display: 'flex', gap: 16, marginTop: 32 },
+        timerPreset: (active) => ({ padding: '8px 16px', borderRadius: 20, fontSize: 14, border: 'none', cursor: 'pointer', background: active ? '#D4A84B' : '#27272a', color: active ? '#000' : '#a1a1aa' }),
+        weekNav: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: 16 },
+        weekBtn: { background: '#27272a', border: 'none', color: '#a1a1aa', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 14 },
+        weekLabel: { fontSize: 14, color: '#71717a' },
+        modalOverlay: { position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'flex-end' },
+        modalContent: { background: '#18181b', borderRadius: '24px 24px 0 0', width: '100%', padding: 24, paddingBottom: 'max(40px, env(safe-area-inset-bottom))' },
+        modalHandle: { width: 48, height: 4, background: '#3f3f46', borderRadius: 2, margin: '0 auto 24px' },
+        modalTitle: { fontSize: 18, fontWeight: 700, marginBottom: 16 },
+        inputGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 },
+        inputLabel: { fontSize: 12, color: '#71717a', marginBottom: 8, display: 'block' },
+        input: { width: '100%', background: '#27272a', border: '1px solid #3f3f46', borderRadius: 12, padding: '12px 16px', color: '#fff', fontSize: 18, textAlign: 'center' },
+        saveBtn: { width: '100%', background: '#D4A84B', color: '#000', fontWeight: 600, padding: 16, borderRadius: 12, border: 'none', fontSize: 16, cursor: 'pointer' },
+        macroGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 16 },
+        macroCard: (color) => ({ background: '#18181b', borderRadius: 12, padding: 12, textAlign: 'center', border: '1px solid #27272a' }),
+        macroValue: (color) => ({ fontSize: 18, fontWeight: 700, color }),
+        mealCard: (done) => ({ borderRadius: 12, border: '1px solid', padding: 16, marginBottom: 8, cursor: 'pointer', borderColor: done ? 'rgba(39,39,42,0.5)' : '#27272a', background: done ? 'rgba(24,24,27,0.5)' : '#18181b' }),
+        mealInner: { display: 'flex', alignItems: 'flex-start', gap: 12 },
+        mealCheck: (done) => ({ width: 40, height: 40, borderRadius: '50%', border: '2px solid', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderColor: done ? '#D4A84B' : '#52525b', background: done ? '#D4A84B' : 'transparent' }),
+        mealName: (done) => ({ fontWeight: 500, fontSize: 14, color: done ? '#71717a' : '#fff' }),
+        mealItems: (done) => ({ fontSize: 12, color: done ? '#52525b' : '#71717a', marginTop: 2 }),
+        mealMacros: { display: 'flex', gap: 12, marginTop: 8 },
+        mealMacro: (color) => ({ fontSize: 10, color }),
+        progressBar: { height: 8, background: '#27272a', borderRadius: 4, overflow: 'hidden', marginTop: 8 },
+        progressFill: (pct) => ({ height: '100%', background: 'linear-gradient(to right, #B45309, #D4A84B)', width: `${pct}%`, transition: 'width 0.3s' }),
+        chartContainer: { background: '#18181b', borderRadius: 12, padding: 16, border: '1px solid #27272a', marginBottom: 16 },
+        chartHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+        chartBars: { height: 128, display: 'flex', alignItems: 'flex-end', gap: 4 },
+        chartBar: (h) => ({ flex: 1, background: 'linear-gradient(to top, #B45309, #D4A84B)', borderRadius: '4px 4px 0 0', height: `${h}%`, minHeight: 8 }),
+        chartLabel: { fontSize: 8, color: '#52525b', marginTop: 4, textAlign: 'center' },
+        measureGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 16 },
+        measureCard: { background: '#18181b', borderRadius: 12, padding: 12, border: '1px solid #27272a' },
+        measureLabel: { fontSize: 10, color: '#71717a', textTransform: 'uppercase' },
+        measureValue: { fontSize: 18, fontWeight: 700, marginTop: 2 },
+        measureUnit: { fontSize: 12, color: '#D4A84B', marginLeft: 2 },
+        photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 },
+        photoCard: { aspectRatio: '3/4', background: '#18181b', borderRadius: 12, overflow: 'hidden', position: 'relative', border: '1px solid #27272a' },
+        photoImg: { width: '100%', height: '100%', objectFit: 'cover' },
+        photoDate: { position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.9))', padding: 12 },
+        photoDateText: { fontSize: 12, color: '#a1a1aa' },
+        uploadBtn: { aspectRatio: '3/4', background: '#18181b', borderRadius: 12, border: '2px dashed #3f3f46', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
+        emptyState: { textAlign: 'center', padding: '64px 0', color: '#71717a' },
+        emptyIcon: { fontSize: 48, marginBottom: 16 },
+        restDay: { textAlign: 'center', padding: '48px 0', color: '#71717a' },
+        completedBadge: { textAlign: 'right' },
+        completedValue: { fontSize: 24, fontWeight: 700, color: '#D4A84B' },
+        completedLabel: { fontSize: 10, color: '#71717a', textTransform: 'uppercase' }
+      };
+
+      return (
+        <div style={styles.app}>
+          {/* Header */}
+          <header style={styles.header}>
+            <div style={styles.headerInner}>
+              <div style={styles.logo}>
+                {Icons.trophy}
+                <span style={styles.logoText}>OLYMPIA FORGE</span>
+              </div>
+              <div style={styles.streak}>
+                {Icons.fire} {streak}
+              </div>
+            </div>
+          </header>
+
+          {/* Rest Timer Overlay */}
+          {restTimer && (
+            <div style={styles.timerOverlay} onClick={() => { setRestTimer(null); setTimerSeconds(90); }}>
+              <div style={styles.timerLabel}>REST TIMER</div>
+              <div style={styles.timerText}>
+                {Math.floor(timerSeconds / 60)}:{String(timerSeconds % 60).padStart(2, '0')}
+              </div>
+              <div style={styles.timerHint}>Tap anywhere to dismiss</div>
+              <div style={styles.timerBtns}>
+                {[60, 90, 120].map(t => (
+                  <button key={t} style={styles.timerPreset(timerSeconds === t)} onClick={(e) => { e.stopPropagation(); setTimerSeconds(t); }}>
+                    {t}s
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <main style={styles.main}>
+            {/* Workout View */}
+            {view === 'workout' && (
+              <>
+                {/* Week navigation */}
+                <div style={styles.weekNav}>
+                  <button style={styles.weekBtn} onClick={() => setCurrentWeek(w => Math.max(1, w - 1))}>←</button>
+                  <span style={styles.weekLabel}>Week {currentWeek}</span>
+                  <button style={styles.weekBtn} onClick={() => setCurrentWeek(w => w + 1)}>→</button>
+                </div>
+
+                {/* Day selector */}
+                <div style={styles.dayScroll} className="scrollbar-hide">
+                  {orderedSchedule.map(d => {
+                    const session = sessions[d.workout];
+                    const isRest = d.workout === 'rest';
+                    const active = selectedDayOfWeek === d.day;
+                    return (
+                      <button key={d.day} style={styles.dayBtn(active, isRest)} onClick={() => setSelectedDayOfWeek(d.day)}>
+                        <span style={styles.dayLabel}>{d.name}</span>
+                        <span style={styles.dayWorkout}>{session.shortName}</span>
+                        {d.isToday && <div style={styles.todayDot} />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Session header */}
+                <div style={styles.sessionHeader}>
+                  <div>
+                    <h2 style={styles.sessionTitle}>{currentSession.name}</h2>
+                    <div>
+                      {currentSession.muscles.map(m => (
+                        <span key={m} style={styles.muscleTag}>{m}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={styles.completedBadge}>
+                    <div style={styles.completedValue}>{completedCount}/{currentSession.exercises.length}</div>
+                    <div style={styles.completedLabel}>Done</div>
+                  </div>
+                </div>
+
+                {/* Quick stats */}
+                <div style={styles.statsGrid}>
+                  <div style={styles.statCard}>
+                    <div style={styles.statValue}>{Math.round(totalVolume / 1000)}k</div>
+                    <div style={styles.statLabel}>Volume</div>
+                  </div>
+                  <div style={styles.statCard}>
+                    <div style={styles.statValue}>{currentSession.exercises.length}</div>
+                    <div style={styles.statLabel}>Exercises</div>
+                  </div>
+                  <div style={{...styles.statCard, ...styles.timerBtn}} onClick={() => { setRestTimer(Date.now()); setTimerSeconds(90); }}>
+                    <div style={{...styles.statValue, color: '#D4A84B'}}>1:30</div>
+                    <div style={{...styles.statLabel, color: 'rgba(212,168,75,0.7)'}}>Timer</div>
+                  </div>
+                </div>
+
+                {/* Exercise list */}
+                {currentSession.exercises.length > 0 ? (
+                  currentSession.exercises.map((ex, idx) => (
+                    <div key={ex.id} style={styles.exerciseCard(ex.done)}>
+                      <div style={styles.exerciseInner}>
+                        <div style={styles.checkBtn(ex.done)} onClick={() => toggleExercise(currentSessionKey, ex.id)}>
+                          {ex.done ? Icons.check : <span style={{color: '#71717a', fontSize: 14}}>{idx + 1}</span>}
+                        </div>
+                        <div style={{flex: 1, minWidth: 0}}>
+                          <h3 style={styles.exerciseName(ex.done)}>{ex.name}</h3>
+                          <div style={styles.exerciseMeta}>
+                            <span style={styles.exerciseMetaItem}>{ex.sets} sets</span>
+                            <span style={styles.exerciseMetaItem}>{ex.reps} reps</span>
+                            <span style={styles.exerciseWeight}>{ex.weight}{typeof ex.weight === 'number' ? 'kg' : ''}</span>
+                          </div>
+                        </div>
+                        <div style={styles.editBtn} onClick={() => { setEditingExercise({...ex, sessionKey: currentSessionKey}); setShowModal('edit'); }}>
+                          {Icons.edit}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={styles.restDay}>
+                    <div style={{fontSize: 48, marginBottom: 8}}>🏖️</div>
+                    <p>Rest day — recover and grow!</p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Nutrition View */}
+            {view === 'nutrition' && (
+              <>
+                <div style={styles.macroGrid}>
+                  {[
+                    { label: 'Calories', value: Math.round(totalNutrition.calories), color: '#D4A84B' },
+                    { label: 'Protein', value: `${Math.round(totalNutrition.protein)}g`, color: '#f87171' },
+                    { label: 'Carbs', value: `${Math.round(totalNutrition.carbs)}g`, color: '#60a5fa' },
+                    { label: 'Fats', value: `${Math.round(totalNutrition.fats)}g`, color: '#4ade80' },
+                  ].map((s, i) => (
+                    <div key={i} style={styles.macroCard()}>
+                      <div style={styles.macroValue(s.color)}>{s.value}</div>
+                      <div style={styles.statLabel}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={styles.chartContainer}>
+                  <div style={styles.chartHeader}>
+                    <span style={{fontSize: 14, color: '#a1a1aa'}}>Meals completed</span>
+                    <span style={{fontWeight: 700, color: '#D4A84B'}}>{mealsCompleted}/{nutritionPlan.length}</span>
+                  </div>
+                  <div style={styles.progressBar}>
+                    <div style={styles.progressFill((mealsCompleted / nutritionPlan.length) * 100)} />
+                  </div>
+                </div>
+
+                {nutritionPlan.map((meal, idx) => (
+                  <div key={idx} style={styles.mealCard(mealChecks[idx])} onClick={() => setMealChecks(p => ({...p, [idx]: !p[idx]}))}>
+                    <div style={styles.mealInner}>
+                      <div style={styles.mealCheck(mealChecks[idx])}>
+                        {mealChecks[idx] ? Icons.check : <span style={{fontSize: 10, color: '#71717a'}}>{meal.meal}</span>}
+                      </div>
+                      <div style={{flex: 1}}>
+                        <div style={styles.mealName(mealChecks[idx])}>{meal.meal} • {meal.time}</div>
+                        <div style={styles.mealItems(mealChecks[idx])}>{meal.items.join(', ')}</div>
+                        <div style={styles.mealMacros}>
+                          <span style={styles.mealMacro('#D4A84B')}>{Math.round(meal.calories)} cal</span>
+                          <span style={styles.mealMacro('#f87171')}>{Math.round(meal.protein)}g P</span>
+                          <span style={styles.mealMacro('#60a5fa')}>{Math.round(meal.carbs)}g C</span>
+                          <span style={styles.mealMacro('#4ade80')}>{Math.round(meal.fats)}g F</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* Body View */}
+            {view === 'body' && (
+              <>
+                <div style={styles.chartContainer}>
+                  <div style={styles.chartHeader}>
+                    <span style={{fontWeight: 500}}>Weight Progress</span>
+                    <span style={{fontWeight: 700, color: '#D4A84B'}}>{stats.weight} kg</span>
+                  </div>
+                  <div style={styles.chartBars}>
+                    {weightHistory.map((d, i) => (
+                      <div key={i} style={{flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                        <div style={styles.chartBar(((d.weight - 78) / 8) * 100)} />
+                        <span style={styles.chartLabel}>{d.date}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={styles.measureGrid}>
+                  {[
+                    { label: 'Weight', value: stats.weight, unit: 'kg' },
+                    { label: 'Body Fat', value: stats.bodyFat, unit: '%' },
+                    { label: 'Chest', value: stats.chest, unit: 'cm' },
+                    { label: 'Waist', value: stats.waist, unit: 'cm' },
+                    { label: 'Shoulders', value: stats.shoulders, unit: 'cm' },
+                    { label: 'Biceps', value: stats.biceps, unit: 'cm' },
+                    { label: 'Upper Leg', value: stats.upperLeg, unit: 'cm' },
+                    { label: 'Calves', value: stats.calves, unit: 'cm' },
+                    { label: 'Neck', value: stats.neck, unit: 'cm' },
+                  ].map((m, i) => (
+                    <div key={i} style={styles.measureCard}>
+                      <div style={styles.measureLabel}>{m.label}</div>
+                      <div style={styles.measureValue}>{m.value}<span style={styles.measureUnit}>{m.unit}</span></div>
+                    </div>
+                  ))}
+                </div>
+
+                <button style={styles.saveBtn} onClick={() => setShowModal('stats')}>Update Measurements</button>
+              </>
+            )}
+
+            {/* Photos View */}
+            {view === 'photos' && (
+              <>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16}}>
+                  <h2 style={{fontSize: 18, fontWeight: 700}}>Progress Photos</h2>
+                  <label style={{...styles.saveBtn, padding: '8px 16px', fontSize: 14}}>
+                    + Add
+                    <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{display: 'none'}} />
+                  </label>
+                </div>
+
+                {photos.length > 0 ? (
+                  <div style={styles.photoGrid}>
+                    {photos.map((p, i) => (
+                      <div key={i} style={styles.photoCard}>
+                        <img src={p.url} alt="Progress" style={styles.photoImg} />
+                        <div style={styles.photoDate}><span style={styles.photoDateText}>{p.date}</span></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={styles.emptyState}>
+                    <div style={styles.emptyIcon}>📸</div>
+                    <p>Track your transformation</p>
+                    <p style={{fontSize: 14, marginTop: 4}}>Upload front, side, back poses</p>
+                    <label style={{...styles.saveBtn, display: 'inline-block', marginTop: 16, padding: '12px 24px', background: '#27272a', color: '#d4d4d8'}}>
+                      Upload first photo
+                      <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{display: 'none'}} />
+                    </label>
+                  </div>
+                )}
+              </>
+            )}
+          </main>
+
+          {/* Bottom Nav */}
+          <nav style={styles.nav}>
+            <div style={styles.navInner}>
+              {[
+                { id: 'workout', icon: Icons.dumbbell, label: 'Workout' },
+                { id: 'nutrition', icon: Icons.utensils, label: 'Nutrition' },
+                { id: 'body', icon: Icons.ruler, label: 'Body' },
+                { id: 'photos', icon: Icons.camera, label: 'Photos' },
+              ].map(tab => (
+                <button key={tab.id} style={styles.navBtn(view === tab.id)} onClick={() => setView(tab.id)}>
+                  {tab.icon}
+                  <span style={styles.navLabel}>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          {/* Edit Modal */}
+          {showModal === 'edit' && editingExercise && (
+            <div style={styles.modalOverlay} onClick={() => setShowModal(null)}>
+              <div style={styles.modalContent} onClick={e => e.stopPropagation()}>
+                <div style={styles.modalHandle} />
+                <h3 style={styles.modalTitle}>{editingExercise.name}</h3>
+                <div style={styles.inputGrid}>
+                  <div>
+                    <label style={styles.inputLabel}>Sets</label>
+                    <input type="number" value={editingExercise.sets} onChange={e => setEditingExercise(p => ({...p, sets: +e.target.value || 0}))} style={styles.input} />
+                  </div>
+                  <div>
+                    <label style={styles.inputLabel}>Reps</label>
+                    <input type="number" value={editingExercise.reps} onChange={e => setEditingExercise(p => ({...p, reps: +e.target.value || 0}))} style={styles.input} />
+                  </div>
+                  <div>
+                    <label style={styles.inputLabel}>Weight</label>
+                    <input type="text" value={editingExercise.weight} onChange={e => setEditingExercise(p => ({...p, weight: e.target.value}))} style={styles.input} />
+                  </div>
+                </div>
+                <button style={styles.saveBtn} onClick={() => {
+                  setSessions(prev => ({
+                    ...prev,
+                    [editingExercise.sessionKey]: {
+                      ...prev[editingExercise.sessionKey],
+                      exercises: prev[editingExercise.sessionKey].exercises.map(ex =>
+                        ex.id === editingExercise.id ? {...ex, sets: editingExercise.sets, reps: editingExercise.reps, weight: isNaN(editingExercise.weight) ? editingExercise.weight : +editingExercise.weight} : ex
+                      )
+                    }
+                  }));
+                  setShowModal(null);
+                }}>Save Changes</button>
+              </div>
+            </div>
+          )}
+
+          {/* Stats Modal */}
+          {showModal === 'stats' && (
+            <div style={styles.modalOverlay} onClick={() => setShowModal(null)}>
+              <div style={{...styles.modalContent, maxHeight: '80vh', overflow: 'auto'}} onClick={e => e.stopPropagation()}>
+                <div style={styles.modalHandle} />
+                <h3 style={styles.modalTitle}>Update Measurements</h3>
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24}}>
+                  {Object.entries(stats).map(([key, value]) => (
+                    <div key={key}>
+                      <label style={styles.inputLabel}>{key.replace(/([A-Z])/g, ' $1')}</label>
+                      <input type="number" step="0.1" value={value} onChange={e => setStats(p => ({...p, [key]: +e.target.value || 0}))} style={{...styles.input, textAlign: 'left', padding: '12px'}} />
+                    </div>
+                  ))}
+                </div>
+                <button style={styles.saveBtn} onClick={() => setShowModal(null)}>Save Measurements</button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
